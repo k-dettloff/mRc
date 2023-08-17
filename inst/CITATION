@@ -1,0 +1,10 @@
+bibentry(
+  bibtype  = "Article",
+  title    = "Assessment of bias and precision among simple closed population mark-recapture estimators",
+  author   = person(given = "Kyle", family = "Dettloff", role = "aut"),
+  journal  = "Fisheries Research",
+  year     = 2023,
+  volume   = 265,
+  pages    = 106756,
+  doi      = "https://doi.org/10.1016/j.fishres.2023.106756"
+)
