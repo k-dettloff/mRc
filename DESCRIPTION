@@ -2,9 +2,8 @@ Package: mRc
 Type: Package
 Title: Multi-Visit Closed Population Mark-Recapture Estimates
 Version: 0.1.0
-Author: Kyle Dettloff
-Maintainer: Kyle Dettloff <kyle.dettloff@noaa.gov>
-Description: Compute bootstrap confidence intervals for the adjusted Schnabel and Schumacher-Eschmeyer multi-visit mark-recapture estimators (Dettloff 2023).
+Authors@R: person("Kyle", "Dettloff", role = c("aut", "cre","cph"), email = "kyle.dettloff@noaa.gov")
+Description: Compute bootstrap confidence intervals for the adjusted Schnabel and Schumacher-Eschmeyer multi-visit mark-recapture estimators based on Dettloff (2023) <doi:10.1016/j.fishres.2023.106756>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
