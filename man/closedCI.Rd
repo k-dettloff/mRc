@@ -40,6 +40,7 @@ Bootstrap confidence intervals are computed using a beta-binomial distribution w
 M2 = 2
 n = c(232, 524, 152, 98, 353)
 m = c(0, 5, 8, 6, 13)
+set.seed(123)
 closedCI(M2, n, m, ndraws = 1000)
 }
 \references{
