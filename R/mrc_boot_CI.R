@@ -19,6 +19,7 @@
 #' M2 = 2
 #' n = c(232, 524, 152, 98, 353)
 #' m = c(0, 5, 8, 6, 13)
+#' set.seed(123)
 #' closedCI(M2, n, m, ndraws = 1000)
 
 closedCI = function(marked, caught, recaptured, newmarks = NULL, alpha = 0.05, ndraws = 1e5) {
