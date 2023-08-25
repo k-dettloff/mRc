@@ -34,15 +34,13 @@ Calculate adjusted Schnabel and Schumacher-Eschmeyer estimates with confidence i
 }
 \details{
 Bias adjusted estimators are based on Dettloff (2023).
-Bootstrap confidence intervals are computed using a beta-binomial distribution with n=nk, alpha=mk, beta=nk-mk.
+Bootstrap confidence intervals are computed using a beta-binomial distribution with n = nk, alpha = mk, beta = nk-mk.
 }
 \examples{
-\dontrun{
 M2 = 2
 n = c(232, 524, 152, 98, 353)
 m = c(0, 5, 8, 6, 13)
-closedCI(M2, n, m)
-}
+closedCI(M2, n, m, ndraws = 1000)
 }
 \references{
 Dettloff, K. (2023). Assessment of bias and precision among simple closed population mark-recapture estimators.
