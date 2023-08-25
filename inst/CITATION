@@ -6,5 +6,5 @@ bibentry(
   year     = 2023,
   volume   = 265,
   pages    = 106756,
-  doi      = "https://doi.org/10.1016/j.fishres.2023.106756"
+  doi      = "10.1016/j.fishres.2023.106756"
 )
