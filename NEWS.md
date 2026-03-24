@@ -1,6 +1,7 @@
 # mRc 0.1.2 (2026-03-24)
 
-* Added validation checks for integer-valued inputs.
+* Made further speed improvements using matrix multiplication and optimized memory allocation.
+* Added validation checks to ensure integer-valued inputs.
 
 # mRc 0.1.1 (2026-03-23)
 

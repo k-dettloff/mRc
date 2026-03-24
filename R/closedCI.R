@@ -32,11 +32,18 @@ closedCI <- function(marked, caught, recaptured, newmarks = NULL, alpha = 0.05, 
 
   # validate inputs
   stopifnot(
-    length(marked) == 1, length(caught) == length(recaptured),
+    length(marked) == 1,
+    length(caught) == length(recaptured),
+    alpha > 0, alpha < 1,
+    ndraws >= 1e3,
     ndraws %% 1 == 0,
     all(c(marked, caught, recaptured) %% 1 == 0),
-    marked > 0, all(caught > 0), all(recaptured >= 0), any(recaptured > 0),
-    all(recaptured <= caught), alpha > 0, alpha < 1, ndraws >= 1e3
+    marked > 0,
+    all(caught > 0),
+    all(recaptured >= 0),
+    marked >= recaptured[1],
+    all(recaptured <= caught),
+    any(recaptured > 0)
   )
 
   # take newmarks to be caught minus recaptured by default
@@ -60,70 +67,68 @@ closedCI <- function(marked, caught, recaptured, newmarks = NULL, alpha = 0.05, 
   # ensure number of recaptures is not greater than marked individuals at large
   stopifnot(all(recaptured <= M))
 
-  # force to numeric instead of integer
+  # force data types to numeric instead of integer
   marked <- as.numeric(marked)
   caught <- as.numeric(caught)
   recaptured <- as.numeric(recaptured)
 
+  ## create matrices to store bootstrap replicates
   n_p <- length(caught)
-  # decimal correction for adjusted S.E. estimator
-  penalty <- prod(c(M[1], caught))^-(1 / (n_p + 1))
-
-  # create matrix to store bootstrap replicates
-  caught_mat <- matrix(rep(caught, each = ndraws), nrow = ndraws, ncol = n_p)
 
   # draw number of recaptures from beta-binomial distribution
-  # ensure number of recaptures is not greater than marked individuals at large in sample
-  rep_idx <- rep(1:n_p, each = ndraws)
-  shape1 <- recaptured[rep_idx]
-  shape2 <- (caught - recaptured)[rep_idx]
-  mk_vec <- rbinom(ndraws * n_p, caught[rep_idx], rbeta(ndraws * n_p, shape1, shape2))
-
+  mk_vec <- rbinom(ndraws * n_p, rep(caught, each = ndraws),
+                   rbeta(ndraws * n_p, rep(recaptured, each = ndraws), rep(caught - recaptured, each = ndraws)))
   mk_mat <- matrix(mk_vec, nrow = ndraws, ncol = n_p)
-  M_mat <- matrix(M, nrow = ndraws, ncol = n_p, byrow = TRUE)
-  mk_mat <- pmin(mk_mat, M_mat)
+  # ensure number of recaptures is not greater than marked individuals at large in sample
+  mk_mat[] <- pmin(mk_vec, rep(M, each = ndraws))
 
   # calculate marked individuals at large for random draw
   if (n_p > 1) {
-    diffs <- caught_mat[, -n_p, drop = FALSE] - mk_mat[, -n_p, drop = FALSE]
-    cum_diffs <- matrix(t(apply(diffs, 1, cumsum)), nrow = ndraws, ncol = n_p - 1)
+    diffs <- rep(caught[-n_p], each = ndraws) - mk_mat[, -n_p, drop = FALSE]
+    cum_diffs <- matrix(0, nrow = ndraws, ncol = n_p - 1)
+    cum_diffs[, 1] <- diffs[, 1]
+    if (n_p > 2) {
+      for (j in 2:(n_p - 1)) {
+        cum_diffs[, j] <- cum_diffs[, j - 1] + diffs[, j]
+      }
+    }
     Mk_mat <- cbind(marked, marked + cum_diffs)
   } else {
     Mk_mat <- matrix(marked, nrow = ndraws, ncol = 1)
   }
 
   # calculate adjusted Schnabel statistic
-  S1_reps <- pmax(ceiling(rowSums(Mk_mat * caught_mat) / (rowSums(mk_mat) + 1)), M[length(M)])
+  S1_reps <- pmax(ceiling(as.vector(Mk_mat %*% caught) / (rowSums(mk_mat) + 1)), M[length(M)])
 
-  # calculate adjusted S-E statistic
-  S2_reps <- pmax(rowSums((Mk_mat + 1)^2 * (caught_mat + 1)) / rowSums(Mk_mat * (mk_mat + 1)) - 2 - penalty, M[length(M)])
+  # calculate adjusted Schumacher-Eschmeyer statistic
+  penalty <- prod(c(M[1], caught))^-(1 / (n_p + 1)) # decimal correction for adjusted Schumacher-Eschmeyer estimator
+  S2_reps <- pmax(as.vector(((Mk_mat + 1)^2) %*% (caught + 1)) / rowSums(Mk_mat * (mk_mat + 1)) - 2 - penalty, M[length(M)])
 
   # calculate adjusted Schnabel population size estimate
   estS1 <- max(ceiling(sum(M * caught) / (sum(recaptured) + 1)), M[length(M)])
-  # calculate adjusted S-E population size estimate
+  # calculate adjusted Schumacher-Eschmeyer population size estimate
   estS2 <- max(round(sum((M + 1)^2 * (caught + 1)) / sum(M * (recaptured + 1)) - 2 - penalty), M[length(M)])
 
-  # generate bootstrap replicates
+  # store bootstrap replicates
   reps <- list(S1_reps, S2_reps)
 
   # compute bias adjusted percentile confidence intervals
   ci <- mapply(function(x, y) {
     # calculate quantiles
     q_raw <- quantile(x, probs = c(alpha / 2, 1 - alpha / 2))
-    nm <- names(q_raw)
     # adjust bias
     raw_ci <- round(q_raw - (median(x) - y))
     # clamp values
     lower <- pmax(pmin(min(raw_ci), y), M[length(M)])
     upper <- pmax(max(raw_ci), y)
-
+    # combine and add names
     res <- c(lower, upper)
-    names(res) <- nm
+    names(res) <- names(q_raw)
     return(res)
   }, x = reps, y = c(estS1, estS2))
 
   # output matrix
   out <- cbind(Estimate = c(estS1, estS2), t(ci))
-  rownames(out) <- c("Schnabel", "S.E.")
+  rownames(out) <- c("Schnabel", "S-E")
   return(out)
 }
