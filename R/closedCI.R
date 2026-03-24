@@ -71,13 +71,13 @@ closedCI <- function(marked, caught, recaptured, newmarks = NULL, alpha = 0.05, 
   marked <- as.numeric(marked)
   caught <- as.numeric(caught)
   recaptured <- as.numeric(recaptured)
+  newmarks <- as.numeric(newmarks)
 
-  ## create matrices to store bootstrap replicates
   n_p <- length(caught)
-
   # draw number of recaptures from beta-binomial distribution
   mk_vec <- rbinom(ndraws * n_p, rep(caught, each = ndraws),
                    rbeta(ndraws * n_p, rep(recaptured, each = ndraws), rep(caught - recaptured, each = ndraws)))
+  ## create matrix to store bootstrap replicates
   mk_mat <- matrix(mk_vec, nrow = ndraws, ncol = n_p)
   # ensure number of recaptures is not greater than marked individuals at large in sample
   mk_mat[] <- pmin(mk_vec, rep(M, each = ndraws))
